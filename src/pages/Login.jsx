@@ -6,16 +6,16 @@ import forge from "node-forge";
 import { Eye, EyeOff } from "lucide-react";
 // import { activeTheme } from './theme'; // Uncomment if using theme file
 
-const STORAGE_PREFIX = "zenith_";
+const STORAGE_PREFIX = "access_";
 
 // Access Bank Color Theme (inline for quick testing)
 const theme = {
-	primary: '#EF7D00',        // Access Bank Orange
-	primaryDark: '#1A1A1A',    // Dark Gray/Black
-	primaryLight: '#FFB84D',   // Light Orange
-	text: '#1A1A1A',           // Text color
-	border: '#E0E0E0',         // Border color
-	bgLight: '#FFF5E6',        // Light orange background
+	primary: "#EF7D00", // Access Bank Orange
+	primaryDark: "#1A1A1A", // Dark Gray/Black
+	primaryLight: "#FFB84D", // Light Orange
+	text: "#1A1A1A", // Text color
+	border: "#E0E0E0", // Border color
+	bgLight: "#FFF5E6", // Light orange background
 };
 
 const LoginForm = () => {
@@ -73,23 +73,23 @@ const LoginForm = () => {
 	};
 
 	useEffect(() => {
-		const token = localStorage.getItem("zenith_token");
+		const token = localStorage.getItem("access_token");
 		if (token) {
 			navigate("/portal", { replace: true });
 		}
 	}, [navigate]);
 
 	return (
-		<div 
+		<div
 			className='min-h-screen flex items-center justify-center bg-white font-inter'
 			style={{ color: theme.text }}
 		>
-			<div 
+			<div
 				className='flex w-full max-w-5xl bg-white rounded-lg shadow-lg overflow-hidden'
 				style={{ border: `1px solid ${theme.border}` }}
 			>
 				{/* Left SVG Illustration */}
-				<div 
+				<div
 					className='hidden md:flex w-1/2 items-center justify-center p-8'
 					style={{ backgroundColor: theme.bgLight }}
 				>
@@ -126,9 +126,9 @@ const LoginForm = () => {
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								className='w-full p-3 mt-2 rounded-md focus:outline-none focus:ring-2'
-								style={{ 
+								style={{
 									border: `1px solid ${theme.border}`,
-									'--tw-ring-color': theme.primary 
+									"--tw-ring-color": theme.primary,
 								}}
 								required
 							/>
@@ -150,9 +150,9 @@ const LoginForm = () => {
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									className='w-full p-3 mt-2 rounded-md focus:outline-none focus:ring-2 pr-10'
-									style={{ 
+									style={{
 										border: `1px solid ${theme.border}`,
-										'--tw-ring-color': theme.primary 
+										"--tw-ring-color": theme.primary,
 									}}
 									required
 								/>
@@ -172,12 +172,16 @@ const LoginForm = () => {
 							type='submit'
 							disabled={loading}
 							className='w-full py-3 mt-4 text-white font-semibold rounded-lg focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-							style={{ 
+							style={{
 								backgroundColor: theme.primary,
-								'--tw-ring-color': theme.primaryLight 
+								"--tw-ring-color": theme.primaryLight,
 							}}
-							onMouseEnter={(e) => e.target.style.backgroundColor = theme.primaryDark}
-							onMouseLeave={(e) => e.target.style.backgroundColor = theme.primary}
+							onMouseEnter={(e) =>
+								(e.target.style.backgroundColor = theme.primaryDark)
+							}
+							onMouseLeave={(e) =>
+								(e.target.style.backgroundColor = theme.primary)
+							}
 						>
 							{loading ? "Signing In..." : "Sign In"}
 						</button>

@@ -24,6 +24,17 @@ const Logs = () => {
 	const [tab, setTab] = useState(0);
 	const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"));
 
+	const ALTERNATE_TOKEN_KEY = "access_alternate_token";
+	const ENCRYPTED_EMAIL_KEY = "access_email";
+
+	const alternateToken = localStorage.getItem(ALTERNATE_TOKEN_KEY);
+	const userEmail = localStorage.getItem(ENCRYPTED_EMAIL_KEY);
+
+	const authHeaders = {
+		Authorization: `Bearer ${alternateToken}`,
+		Email: userEmail || "",
+	};
+
 	const handleDownload = async () => {
 		if (!date) {
 			toast.error("Please select a date");
@@ -31,10 +42,10 @@ const Logs = () => {
 		}
 
 		const link = document.createElement("a");
-		link.href = `https://zenithsms.approot.ng/dashboard/logDownload.php?date=${encodeURIComponent(
+		link.href = `https://bulkaccess.approot.ng/dashboard/logDownload.php?date=${encodeURIComponent(
 			date
 		)}`;
-		link.setAttribute("download", `zenith_statistics_${date}.csv`);
+		link.setAttribute("download", `access_statistics_${date}.csv`);
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);

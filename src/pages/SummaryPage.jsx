@@ -101,7 +101,7 @@ const SummaryPage = () => {
 		};
 
 		try {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			const url =
 				messageAction === "create"
 					? "https://accessbulk.approot.ng/create_message.php"

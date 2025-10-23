@@ -9,10 +9,10 @@ const ManageMessageCategories = () => {
 	const [mode, setMode] = useState("create"); // create, read, update, delete
 	const [categories, setCategories] = useState([]);
 
-	const token = localStorage.getItem("zenith_token");
+	const token = localStorage.getItem("access_token");
 	const fetchCategories = async () => {
 		try {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 
 			const formData = new FormData();
 			formData.append("action", "read");

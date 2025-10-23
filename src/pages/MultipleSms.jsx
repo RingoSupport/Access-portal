@@ -186,7 +186,7 @@ const SendMultipleSmsPage = () => {
 		formData.append("batchId", batchId);
 		formData.append("phoneHeader", phoneHeader);
 		try {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			const { data } = await axios.post(
 				"https://accessbulk.approot.ng/queues2.php",
 				formData,

@@ -32,11 +32,10 @@ import { useContext, useMemo, useState, useEffect } from "react";
 import { decryptData } from "../utils/crypto";
 import { BRAND, ACCESS_THEME } from "../theme/colors";
 
-
 const BRAND_COLORS = {
 	primary: ACCESS_THEME.primary,
 	secondary: ACCESS_THEME.primaryLight,
-	dark: ACCESS_THEME.primary, 
+	dark: ACCESS_THEME.primary,
 	textMuted: "#636463",
 	showdark: "#636463",
 	white: "#fff",
@@ -89,7 +88,7 @@ export default function DashboardLayout() {
 		navigate("/login");
 	};
 
-	const encryptedRole = localStorage.getItem("xAI789");
+	const encryptedRole = localStorage.getItem("access_role");
 	const role = encryptedRole ? decryptData(encryptedRole) : null;
 
 	const navItems = useMemo(
@@ -262,7 +261,10 @@ export default function DashboardLayout() {
 									</div>
 
 									{isDropdown && openDropdown === item.label && showSidebar && (
-										<div className='ml-3 mr-2 mt-1 rounded-lg ' style={{ backgroundColor: BRAND_COLORS.dark }}>
+										<div
+											className='ml-3 mr-2 mt-1 rounded-lg '
+											style={{ backgroundColor: BRAND_COLORS.dark }}
+										>
 											<div className='py-2'>
 												{item.children
 													.filter(
@@ -270,36 +272,43 @@ export default function DashboardLayout() {
 													)
 													.map((subItem, subIdx) => (
 														<NavLink
-	key={subIdx}
-	to={`/${subItem.path}`}
-	className="flex items-center gap-3 px-5 py-2.5 text-sm rounded-md mx-2 my-0.5 transition border-l-4"
-	style={({ isActive }) => ({
-		backgroundColor: isActive
-			? BRAND_COLORS.primary // Active = Access Orange
-			: "transparent",
-		color: BRAND_COLORS.white, // White text for submenu
-		borderColor: isActive
-			? BRAND_COLORS.secondary // Lighter orange border
-			: "transparent",
-	})}
-	onMouseEnter={(e) => {
-		if (!e.currentTarget.classList.contains("active")) {
-			e.currentTarget.style.backgroundColor = BRAND_COLORS.secondary; // Hover = lighter orange
-		}
-	}}
-	onMouseLeave={(e) => {
-		if (!e.currentTarget.classList.contains("active")) {
-			e.currentTarget.style.backgroundColor = "transparent";
-		}
-	}}
-	end={false}
->
-	<span className="text-base leading-none">
-		{subItem.icon ?? <FiSend className="text-base" />}
-	</span>
-	<span className="truncate">{subItem.label}</span>
-</NavLink>
-
+															key={subIdx}
+															to={`/${subItem.path}`}
+															className='flex items-center gap-3 px-5 py-2.5 text-sm rounded-md mx-2 my-0.5 transition border-l-4'
+															style={({ isActive }) => ({
+																backgroundColor: isActive
+																	? BRAND_COLORS.primary // Active = Access Orange
+																	: "transparent",
+																color: BRAND_COLORS.white, // White text for submenu
+																borderColor: isActive
+																	? BRAND_COLORS.secondary // Lighter orange border
+																	: "transparent",
+															})}
+															onMouseEnter={(e) => {
+																if (
+																	!e.currentTarget.classList.contains("active")
+																) {
+																	e.currentTarget.style.backgroundColor =
+																		BRAND_COLORS.secondary; // Hover = lighter orange
+																}
+															}}
+															onMouseLeave={(e) => {
+																if (
+																	!e.currentTarget.classList.contains("active")
+																) {
+																	e.currentTarget.style.backgroundColor =
+																		"transparent";
+																}
+															}}
+															end={false}
+														>
+															<span className='text-base leading-none'>
+																{subItem.icon ?? (
+																	<FiSend className='text-base' />
+																)}
+															</span>
+															<span className='truncate'>{subItem.label}</span>
+														</NavLink>
 													))}
 											</div>
 										</div>

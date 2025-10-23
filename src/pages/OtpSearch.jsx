@@ -83,6 +83,17 @@ const OtpSmsLgs = () => {
 	const [selectedMessage, setSelectedMessage] = useState(null);
 	const [modalOpen, setModalOpen] = useState(false);
 
+	const ALTERNATE_TOKEN_KEY = "access_alternate_token";
+	const ENCRYPTED_EMAIL_KEY = "access_email";
+
+	const alternateToken = localStorage.getItem(ALTERNATE_TOKEN_KEY);
+	const userEmail = localStorage.getItem(ENCRYPTED_EMAIL_KEY);
+
+	const authHeaders = {
+		Authorization: `Bearer ${alternateToken}`,
+		Email: userEmail || "",
+	};
+
 	const mapMessages = (rawMessages) => {
 		return rawMessages.map((msg) => {
 			const errorDescription =
@@ -113,7 +124,8 @@ const OtpSmsLgs = () => {
 		setLoading(true);
 		try {
 			const response = await axios.get(
-				"https://zenithsms.approot.ng/dashboard/otp/messages.php"
+				"https://bulkaccess.approot.ng/dashboard/otp/messages.php",
+				{ headers: authHeaders }
 			);
 
 			if (response.data.status && response.data.data?.length) {
@@ -140,7 +152,8 @@ const OtpSmsLgs = () => {
 		setLoading(true);
 		try {
 			const response = await axios.get(
-				`https://zenithsms.approot.ng/dashboard/otp/number.php?number=${number}`
+				`https://bulkaccess.approot.ng/dashboard/otp/number.php?number=${number}`,
+				{ headers: authHeaders }
 			);
 
 			if (response.data.status && response.data.data?.length) {

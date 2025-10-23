@@ -29,7 +29,7 @@ export const CreateUser = () => {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [userToDelete, setUserToDelete] = useState(null);
 
-	const token = localStorage.getItem("zenith_token");
+	const token = localStorage.getItem("access_token");
 
 	const confirmDelete = (user) => {
 		setUserToDelete(user);

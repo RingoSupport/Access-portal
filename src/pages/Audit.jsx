@@ -10,7 +10,7 @@ const AuditLogs = () => {
 	const [logs, setLogs] = useState([]);
 	const [loading, setLoading] = useState(false);
 
-	const token = localStorage.getItem("zenith_token");
+	const token = localStorage.getItem("access_token");
 
 	const fetchAuditLogs = async (filter = "") => {
 		setLoading(true);

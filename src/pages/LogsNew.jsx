@@ -25,7 +25,7 @@ const BulkLogs = () => {
 
 	const getFiles = useCallback(async () => {
 		setLoading(true);
-		const token = localStorage.getItem("zenith_token");
+		const token = localStorage.getItem("access_token");
 
 		if (!token) {
 			logout();

@@ -52,7 +52,7 @@ export default function BulkAuditLogs() {
 	const fetchAuditLogs = useCallback(async () => {
 		setLoading(true);
 		setError(null);
-		const token = localStorage.getItem("zenith_token");
+		const token = localStorage.getItem("access_token");
 		try {
 			const response = await fetch(API_URL, {
 				headers: {

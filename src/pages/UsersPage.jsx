@@ -30,9 +30,10 @@ const UsersPage = () => {
 		full_name: "",
 		role: "",
 		email: "",
+		password: "",
 	});
 
-	const token = localStorage.getItem("zenith_token");
+	const token = localStorage.getItem("access_token");
 
 	const fetchUsers = async () => {
 		try {
@@ -65,6 +66,7 @@ const UsersPage = () => {
 			full_name: user.full_name,
 			role: user.role,
 			email: user.email,
+			password: "",
 		});
 		setEditDialogOpen(true);
 	};
@@ -307,6 +309,25 @@ const UsersPage = () => {
 							</option>
 						))}
 					</TextField>
+					<TextField
+						label='Password '
+						type='password'
+						value={editForm.password}
+						onChange={(e) =>
+							setEditForm((prev) => ({ ...prev, password: e.target.value }))
+						}
+						fullWidth
+						margin='normal'
+						sx={{
+							"& .MuiOutlinedInput-root": {
+								"& fieldset": { borderColor: EXTRA_COLORS.border.light },
+								"&:hover fieldset": { borderColor: EXTRA_COLORS.border.light },
+								"&.Mui-focused fieldset": { borderColor: BRAND.activeBg },
+								color: EXTRA_COLORS.text.primary,
+							},
+							"& .MuiInputLabel-root": { color: EXTRA_COLORS.text.secondary },
+						}}
+					/>
 				</DialogContent>
 
 				<DialogActions

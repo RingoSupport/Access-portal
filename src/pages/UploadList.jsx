@@ -16,7 +16,7 @@ const UploadedFilesList = () => {
 
 	useEffect(() => {
 		const fetchFiles = async () => {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			try {
 				const res = await axios.get("https://accessbulk.approot.ng/send.php", {
 					headers: { Authorization: `Bearer ${token}` },

@@ -22,7 +22,7 @@ const UploadedFilesTable = () => {
 		const fetchData = async () => {
 			try {
 				// Endpoint for UploadedFilesTable (DataGrid View)
-				const token = localStorage.getItem("zenith_token");
+				const token = localStorage.getItem("access_token");
 				const res = await axios.get(
 					"https://accessbulk.approot.ng/upload.php",
 					{

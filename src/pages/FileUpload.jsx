@@ -41,7 +41,7 @@ const FileUploadServer = () => {
 		formData.append("text", text);
 
 		try {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			const response = await axios.post(
 				"https://accessbulk.approot.ng/process_file.php", // Endpoint
 				formData,

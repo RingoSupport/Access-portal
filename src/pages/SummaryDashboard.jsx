@@ -87,7 +87,7 @@ export default function SummaryDashboard() {
 
 	useEffect(() => {
 		async function fetchData() {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			try {
 				const response = await fetch(
 					"https://accessbulk.approot.ng/get_summary.php",

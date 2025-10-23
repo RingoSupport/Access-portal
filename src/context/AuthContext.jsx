@@ -8,12 +8,18 @@ import React, {
 } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { decryptData } from "../utils/crypto2";
 
 export const AuthContext = createContext();
 
-const STORAGE_KEY = "zenith_token";
-const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
-const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+// 🔸 Access Bank configuration
+const STORAGE_KEY = "access_token";
+const ENCRYPTED_ROLE_KEY = "access_role";
+const ENCRYPTED_EMAIL_KEY = "access_email";
+const ALTERNATE_TOKEN_KEY = "access_alternate_token";
+
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 min
+const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hrs
 
 export const AuthProvider = ({ children }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(
@@ -24,9 +30,22 @@ export const AuthProvider = ({ children }) => {
 	const inactivityTimerRef = useRef(null);
 	const loginTimeRef = useRef(null);
 
+	// 🔹 Token retrieval
 	const getToken = () => localStorage.getItem(STORAGE_KEY);
-	const getUserEmail = () => localStorage.getItem("zenith_emial") || "";
 
+	// 🔹 Email retrieval (decrypted if encrypted)
+	const getUserEmail = () => {
+		const encryptedEmail = localStorage.getItem(ENCRYPTED_EMAIL_KEY);
+		if (!encryptedEmail) return "";
+		try {
+			return encryptedEmail;
+		} catch (e) {
+			console.error("Error decrypting email:", e);
+			return "";
+		}
+	};
+
+	// 🔹 Special user check
 	const isSpecialUser = (() => {
 		const email = getUserEmail().toLowerCase();
 		return (
@@ -37,40 +56,46 @@ export const AuthProvider = ({ children }) => {
 		);
 	})();
 
+	// 🔹 Save token + timestamp
 	const saveToken = (token) => {
 		localStorage.setItem(STORAGE_KEY, token);
 		loginTimeRef.current = Date.now();
 	};
 
-	const login = (token, userData, role, email) => {
+	// 🔹 Login (with encrypted role/email)
+	const login = (token, userData, encryptedRole, email) => {
 		saveToken(token);
-		localStorage.setItem("xAI789", role);
-		localStorage.setItem("zenith_emial", email);
+		localStorage.setItem(ENCRYPTED_ROLE_KEY, encryptedRole);
+		localStorage.setItem(ENCRYPTED_EMAIL_KEY, email);
 		setIsAuthenticated(true);
 		setUser(userData);
 	};
 
+	// 🔹 Logout + cleanup
 	const logout = useCallback((msg) => {
-		localStorage.clear();
+		localStorage.removeItem(STORAGE_KEY);
+		localStorage.removeItem(ENCRYPTED_ROLE_KEY);
+		localStorage.removeItem(ENCRYPTED_EMAIL_KEY);
+		localStorage.removeItem(ALTERNATE_TOKEN_KEY);
+
 		setIsAuthenticated(false);
 		setUser(null);
 		if (msg) toast.info(msg);
 	}, []);
 
+	// 🔹 Token refresh (Access-specific)
 	const refreshToken = useCallback(async () => {
 		const token = getToken();
+		if (!token) return logout("Session expired. Please log in again.");
 		try {
 			const response = await axios.post(
 				"https://accessbulk.approot.ng/refresh_token.php",
 				{ token },
 				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
+					headers: { Authorization: `Bearer ${token}` },
 				}
 			);
 			const newToken = response.data?.token;
-
 			if (newToken) {
 				saveToken(newToken);
 				loginTimeRef.current = Date.now();
@@ -82,20 +107,18 @@ export const AuthProvider = ({ children }) => {
 		}
 	}, [logout]);
 
+	// 🔹 Inactivity timeout
 	const resetInactivityTimer = useCallback(() => {
-		// ✅ AIS & EMS users: still reset inactivity timer
 		if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
 
 		if (getToken()) {
 			inactivityTimerRef.current = setTimeout(() => {
-				// Non-special users get logged out
-				if (!isSpecialUser) {
-					logout("You were logged out due to inactivity.");
-				}
+				if (!isSpecialUser) logout("You were logged out due to inactivity.");
 			}, INACTIVITY_TIMEOUT_MS);
 		}
 	}, [logout, isSpecialUser]);
 
+	// 🔹 Session timeout & refresh
 	useEffect(() => {
 		const token = getToken();
 		if (!token) return;
@@ -104,7 +127,6 @@ export const AuthProvider = ({ children }) => {
 		loginTimeRef.current = Date.now();
 
 		if (!isSpecialUser) {
-			// Only apply session timeout for non-AIS/EMS users
 			const interval = setInterval(() => {
 				const loginTime = loginTimeRef.current;
 				if (loginTime && Date.now() - loginTime > SESSION_TIMEOUT_MS) {
@@ -112,12 +134,13 @@ export const AuthProvider = ({ children }) => {
 				} else {
 					refreshToken();
 				}
-			}, 15 * 60 * 1000);
+			}, 15 * 60 * 1000); // every 15 min
 
 			return () => clearInterval(interval);
 		}
 	}, [refreshToken, logout, isSpecialUser]);
 
+	// 🔹 Activity listeners (mouse, keyboard, etc.)
 	useEffect(() => {
 		if (!isAuthenticated) return;
 
@@ -142,7 +165,9 @@ export const AuthProvider = ({ children }) => {
 	}, [isAuthenticated, resetInactivityTimer]);
 
 	return (
-		<AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+		<AuthContext.Provider
+			value={{ isAuthenticated, user, login, logout, getUserEmail }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

@@ -24,7 +24,7 @@ const UpdateSmsGroupNumbersPage = () => {
 	useEffect(() => {
 		const fetchGroups = async () => {
 			try {
-				const token = localStorage.getItem("zenith_token");
+				const token = localStorage.getItem("access_token");
 				const response = await axios.get(
 					"https://accessbulk.approot.ng//list_groups.php",
 					{
@@ -163,7 +163,7 @@ const UpdateSmsGroupNumbersPage = () => {
 		}
 
 		try {
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 			const formData = new FormData();
 			formData.append("file", file);
 			formData.append("group_id", groupId);

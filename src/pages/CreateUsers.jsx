@@ -35,7 +35,7 @@ const CreateUserPage = () => {
 				full_name: fullName,
 			};
 
-			const token = localStorage.getItem("zenith_token");
+			const token = localStorage.getItem("access_token");
 
 			const response = await axios.post(
 				"https://accessbulk.approot.ng//create_user.php",
