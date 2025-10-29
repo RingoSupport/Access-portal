@@ -10,7 +10,7 @@ const GENERATE_TOKEN_URL = "https://bulkaccess.approot.ng/generatetoken.php";
 const OTP_VERIFY_URL = "https://accessbulk.approot.ng/otp.php";
 
 const theme = {
-	primary: "#EF7D00", // Access Bank Orange
+	primary: "#EF7D00",
 	primaryDark: "#1A1A1A",
 	primaryLight: "#FFB84D",
 	text: "#1A1A1A",
@@ -57,7 +57,6 @@ const OtpPage = () => {
 	const [loading, setLoading] = useState(false);
 	const email = localStorage.getItem("access_email");
 
-	// Generate alternate token (same logic as Zenith version)
 	const generateAlternateToken = async (userEmail) => {
 		try {
 			const { data } = await axios.post(GENERATE_TOKEN_URL, {
