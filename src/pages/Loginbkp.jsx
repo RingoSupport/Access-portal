@@ -56,36 +56,12 @@ const LoginForm = () => {
 				}
 			);
 
-			if (response.data.requires_otp === true) {
-						if (!response.data.temp_token) {
-						toast.error("Authentication error. Please try again.");
-						console.error("Missing temp_token in response:", response.data);
-						return;
-					}
-				sessionStorage.setItem(STORAGE_PREFIX + "temp_token", response.data.temp_token);
-				sessionStorage.setItem(STORAGE_PREFIX + "email", email);
-				toast.success(response.data.message || "OTP sent to your email");
+			if (response.data.status || response.data.success === "success") {
+				toast.success("Successfully sent OTP to user");
+				localStorage.setItem(STORAGE_PREFIX + "email", email);
+				sessionStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
 				navigate("/otp");
-			}
-				else if (response.data.status === true && response.data.token) {
-					toast.success("Login successful");
-					
-					// Store the FULL authentication token
-					localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
-					
-					// Store user info if provided
-					if (response.data.user) {
-						localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
-					}
-					
-					// Clear any temporary data
-					sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
-					sessionStorage.removeItem(STORAGE_PREFIX + "email");
-					
-					navigate("/portal");
-				}
-			
-			else {
+			} else {
 				toast.error(response.data.message || "Invalid credentials.");
 			}
 		} catch (error) {
@@ -97,14 +73,10 @@ const LoginForm = () => {
 	};
 
 	useEffect(() => {
-		const token = localStorage.getItem("zenith_token");
+		const token = localStorage.getItem("access_token");
 		if (token) {
 			navigate("/portal", { replace: true });
 		}
-			else {
-		sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
-		sessionStorage.removeItem(STORAGE_PREFIX + "email");
-	}
 	}, [navigate]);
 
 	return (

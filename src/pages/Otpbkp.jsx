@@ -6,8 +6,6 @@ import { AuthContext } from "../context/AuthContext";
 import { encryptData } from "../utils/crypto";
 import { AiFillBank } from "react-icons/ai";
 
-const STORAGE_PREFIX = "zenith_";
-
 const GENERATE_TOKEN_URL = "https://bulkaccess.approot.ng/generatetoken.php";
 const OTP_VERIFY_URL = "https://accessbulk.approot.ng/otp.php";
 
@@ -57,13 +55,32 @@ const OtpPage = () => {
 
 	const [otp, setOtp] = useState("");
 	const [loading, setLoading] = useState(false);
-	const email = localStorage.getItem("zenith_email");
+	const email = localStorage.getItem("access_email");
+
+	const generateAlternateToken = async (userEmail) => {
+		try {
+			const { data } = await axios.post(GENERATE_TOKEN_URL, {
+				email: userEmail,
+			});
+			if (data.success) {
+				localStorage.setItem("access_alternate_token", data.token);
+				console.log("Alternate token saved successfully.");
+			} else {
+				toast.warn("Warning: Could not save alternate token. " + data.message);
+			}
+		} catch (error) {
+			console.error("Alternate token generation error:", error);
+			toast.warn(
+				"Warning: Failed to communicate with alternate token service."
+			);
+		}
+	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
 
-		const tempToken = sessionStorage.getItem("zenith_token");
+		const tempToken = sessionStorage.getItem("access_token");
 
 		try {
 			const { data } = await axios.post(
@@ -73,8 +90,15 @@ const OtpPage = () => {
 			);
 
 			if (data.status) {
+				if (email) {
+					await generateAlternateToken(email);
+				} else {
+					console.warn("Email not found for alternate token generation.");
+				}
+
 				const encryptedRole = encryptData(data.role);
 				login(data.token, data, encryptedRole, email);
+
 				toast.success("OTP verified!");
 				navigate("/portal");
 			} else {
