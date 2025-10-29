@@ -43,53 +43,68 @@ const LoginForm = () => {
 	};
 
 	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-		try {
-			const encryptedPassword = await encryptPassword(password);
-			const response = await axios.post(
-				"https://accessbulk.approot.ng/login.php",
-				{
-					email,
-					password: encryptedPassword,
-				}
-			);
+    try {
+        const encryptedPassword = await encryptPassword(password);
+        const response = await axios.post(
+            "https://accessbulk.approot.ng/login.php",
+            {
+                email,
+                password: encryptedPassword,
+            }
+        );
 
-					if (response.data.requires_otp || response.data.otp_sent) {
-										if (!response.data.temp_token) {
-								toast.error("Authentication error: Missing temporary token");
-								console.error("Missing temp_token in response:", response.data);
-								return;
-							}
+        console.log("API Response:", response.data); // Debug log
 
-												// Handle direct login success (no OTP required)
-							if (response.data.status === true && response.data.token) {
-								toast.success("Login successful");
-								localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
+        // Handle OTP required case - FIRST check
+        if (response.data.requires_otp || response.data.otp_sent) {
+			console.log("Debug - requires_otp:", response.data.requires_otp, "otp_sent:", response.data.otp_sent);
+			console.log("Debug - full response.data:", JSON.stringify(response.data, null, 2));
+			
+            if (!response.data.temp_token) {
+                toast.error("Authentication error: Missing temporary token");
+                console.error("Missing temp_token in response:", response.data);
+                return;
+            }
 
-								if (response.data.user) {
-									localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
-								}
+            sessionStorage.setItem(STORAGE_PREFIX + "temp_token", response.data.temp_token);
+            sessionStorage.setItem(STORAGE_PREFIX + "email", email);
 
-								// Clean up OTP session data
-								sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
-								sessionStorage.removeItem(STORAGE_PREFIX + "email");
+            toast.success(response.data.message || "OTP sent to your email");
+            navigate("/otp");
+            return; // ⚠️ CRITICAL: This stops further execution
+        }
 
-								navigate("/portal");
-								return;
-							}
+        // Handle direct login success (no OTP required) - SECOND check
+        if (response.data.status === true && response.data.token) {
 
-							  // Handle failed login (neither OTP nor successful login)
+            toast.success("Login successful");
+            localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
+
+            if (response.data.user) {
+                localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
+            }
+
+            // Clean up OTP session data
+            sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
+            sessionStorage.removeItem(STORAGE_PREFIX + "email");
+
+            navigate("/portal");
+            return; // ⚠️ CRITICAL: This stops further execution
+        }
+
+        // Handle failed login (neither OTP nor successful login) - LAST
         toast.error(response.data.message || "Login failed. Please try again.");
-						}
-		} catch (error) {
-			console.error("Login error:", error);
-			toast.error("Encryption or login failed.");
-		} finally {
-			setLoading(false);
-		}
-	};
+
+    } catch (error) {
+        console.error("Login error:", error);
+        toast.error("Encryption or login failed.");
+    } finally {
+        setLoading(false);
+    }
+};
 
 	useEffect(() => {
 		const token = localStorage.getItem("zenith_token");
