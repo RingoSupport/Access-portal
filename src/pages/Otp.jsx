@@ -57,13 +57,26 @@ const OtpPage = () => {
 
 	const [otp, setOtp] = useState("");
 	const [loading, setLoading] = useState(false);
-	const email = localStorage.getItem("zenith_email");
+
+	const email = sessionStorage.getItem(STORAGE_PREFIX + "email");
+	const tempToken = sessionStorage.getItem("zenith_token");
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
 
-		const tempToken = sessionStorage.getItem("zenith_token");
+		
+
+		if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+			toast.error("Please enter a valid 6-digit OTP");
+			return;
+		}
+
+		if (!tempToken) {
+			toast.error("Session expired. Please login again.");
+			navigate("/login", { replace: true });
+			return;
+		}
 
 		try {
 			const { data } = await axios.post(
@@ -72,11 +85,33 @@ const OtpPage = () => {
 				{ headers: { Authorization: `Bearer ${tempToken}` } }
 			);
 
-			if (data.status) {
-				const encryptedRole = encryptData(data.role);
-				login(data.token, data, encryptedRole, email);
-				toast.success("OTP verified!");
-				navigate("/portal");
+			if (data.status === "true") {
+				if (!data.token) {
+					toast.error("Authentication error. Please try again.");
+					console.error("Missing token in successful response:", data);
+					return;
+				}
+
+				localStorage.setItem(STORAGE_PREFIX + "token", data.token);
+				if (data.user) {
+					localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(data.user));
+					
+					// Encrypt and store role if needed
+					if (data.user.role) {
+						const encryptedRole = encryptData(data.user.role);
+						localStorage.setItem(STORAGE_PREFIX + "role", encryptedRole);
+					}
+				}
+
+				
+				sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
+				sessionStorage.removeItem(STORAGE_PREFIX + "email");
+
+				
+				login(data.token, data.user || data, data.user?.role, email);
+
+				toast.success("Authentication successful!");
+				navigate("/portal", { replace: true });
 			} else {
 				const msg = data.message || "Invalid OTP.";
 				toast.error(msg);
@@ -97,13 +132,37 @@ const OtpPage = () => {
 	};
 
 	useEffect(() => {
-		if (localStorage.getItem("access_token")) {
+			const fullToken = localStorage.getItem(STORAGE_PREFIX + "token");
+		if (fullToken) {
 			navigate("/portal", { replace: true });
+			return;
 		}
-		if (!email) {
+			if (!email || !tempToken) {
+			toast.error("Please login first");
+			navigate("/login", { replace: true });
+			return;
+		}
+
+			try {
+			// Decode JWT to check expiry (without verification)
+			const payload = JSON.parse(atob(tempToken.split('.')[1]));
+			const isExpired = payload.exp && payload.exp < Date.now() / 1000;
+			
+			if (isExpired) {
+				toast.error("Session expired. Please login again.");
+				sessionStorage.clear();
+				navigate("/login", { replace: true });
+			}
+		} catch (e) {
+			// If token is malformed, send back to login
+			console.error("Invalid temp_token format:", e);
+			toast.error("Invalid session. Please login again.");
+			sessionStorage.clear();
 			navigate("/login", { replace: true });
 		}
-	}, [navigate, email]);
+
+	}, [navigate, email, tempToken]);
+	
 
 	return (
 		<div
