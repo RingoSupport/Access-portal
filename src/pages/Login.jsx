@@ -56,13 +56,20 @@ const LoginForm = () => {
             }
         );
 
+		console.log("=== FULL RESPONSE ===");
+        console.log("response.status:", response.status);
+        console.log("response.data:", response.data);
+        console.log("requires_otp:", response.data.requires_otp);
+        console.log("otp_sent:", response.data.otp_sent);
+        console.log("====================");
+
         console.log("API Response:", response.data); // Debug log
 
         // Handle OTP required case - FIRST check
         if (response.data.requires_otp || response.data.otp_sent) {
 			console.log("Debug - requires_otp:", response.data.requires_otp, "otp_sent:", response.data.otp_sent);
 			console.log("Debug - full response.data:", JSON.stringify(response.data, null, 2));
-			
+
             if (!response.data.temp_token) {
                 toast.error("Authentication error: Missing temporary token");
                 console.error("Missing temp_token in response:", response.data);
