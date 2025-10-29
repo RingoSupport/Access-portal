@@ -43,11 +43,15 @@ const LoginForm = () => {
 	};
 
 	const handleSubmit = async (e) => {
+		 console.log("🔥 handleSubmit CALLED"); // ADD THIS AS FIRST LINE
     e.preventDefault();
     setLoading(true);
 
+	    console.log("🔥 After setLoading"); // ADD THIS TOO
     try {
+		  console.log("🔥 Entering try block"); // AND THIS
         const encryptedPassword = await encryptPassword(password);
+		    console.log("🔥 Password encrypted"); // AND THIS
         const response = await axios.post(
             "https://accessbulk.approot.ng/login.php",
             {
