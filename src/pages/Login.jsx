@@ -19,115 +19,118 @@ const theme = {
 };
 
 const LoginForm = () => {
-	const navigate = useNavigate();
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [showPassword, setShowPassword] = useState(false);
-	const [loading, setLoading] = useState(false);
+const navigate = useNavigate();
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [showPassword, setShowPassword] = useState(false);
+const [loading, setLoading] = useState(false);
 
-	const encryptPassword = async (password) => {
-		try {
-			const res = await fetch(
-				"https://accessbulk.approot.ng/get_public_key.php"
-			);
-			const pem = await res.text();
-			const publicKey = forge.pki.publicKeyFromPem(pem);
-			const encrypted = publicKey.encrypt(password, "RSA-OAEP", {
-				md: forge.md.sha1.create(),
-			});
-			return window.btoa(encrypted);
-		} catch (error) {
-			console.error("Encryption failed:", error);
-			throw error;
-		}
-	};
-
-	const handleSubmit = async (e) => {
-		 alert("Function called!"); 
-		 console.log("🔥 handleSubmit CALLED"); // ADD THIS AS FIRST LINE
-    e.preventDefault();
-    setLoading(true);
-
-	    console.log("🔥 After setLoading"); // ADD THIS TOO
-    try {
-		  console.log("🔥 Entering try block"); // AND THIS
-        const encryptedPassword = await encryptPassword(password);
-		    console.log("🔥 Password encrypted"); // AND THIS
-        const response = await axios.post(
-            "https://accessbulk.approot.ng/login.php",
-            {
-                email,
-                password: encryptedPassword,
-            }
-        );
-
-		console.log("=== FULL RESPONSE ===");
-        console.log("response.status:", response.status);
-        console.log("response.data:", response.data);
-        console.log("requires_otp:", response.data.requires_otp);
-        console.log("otp_sent:", response.data.otp_sent);
-        console.log("====================");
-
-        console.log("API Response:", response.data); // Debug log
-
-        // Handle OTP required case - FIRST check
-        if (response.data.requires_otp || response.data.otp_sent) {
-			console.log("Debug - requires_otp:", response.data.requires_otp, "otp_sent:", response.data.otp_sent);
-			console.log("Debug - full response.data:", JSON.stringify(response.data, null, 2));
-
-            if (!response.data.temp_token) {
-                toast.error("Authentication error: Missing temporary token");
-                console.error("Missing temp_token in response:", response.data);
-                return;
-            }
-
-            sessionStorage.setItem(STORAGE_PREFIX + "temp_token", response.data.temp_token);
-            sessionStorage.setItem(STORAGE_PREFIX + "email", email);
-
-            toast.success(response.data.message || "OTP sent to your email");
-            navigate("/otp");
-            return; // ⚠️ CRITICAL: This stops further execution
-        }
-
-        // Handle direct login success (no OTP required) - SECOND check
-        if (response.data.status === true && response.data.token) {
-
-            toast.success("Login successful");
-            localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
-
-            if (response.data.user) {
-                localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
-            }
-
-            // Clean up OTP session data
-            sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
-            sessionStorage.removeItem(STORAGE_PREFIX + "email");
-
-            navigate("/portal");
-            return; // ⚠️ CRITICAL: This stops further execution
-        }
-
-        // Handle failed login (neither OTP nor successful login) - LAST
-        toast.error(response.data.message || "Login failed. Please try again.");
-
-    } catch (error) {
-        console.error("Login error:", error);
-        toast.error("Encryption or login failed.");
-    } finally {
-        setLoading(false);
-    }
+const encryptPassword = async (password) => {
+	try {
+		const res = await fetch(
+			"https://accessbulk.approot.ng/get_public_key.php"
+		);
+		const pem = await res.text();
+		const publicKey = forge.pki.publicKeyFromPem(pem);
+		const encrypted = publicKey.encrypt(password, "RSA-OAEP", {
+			md: forge.md.sha1.create(),
+		});
+		return window.btoa(encrypted);
+	} catch (error) {
+		console.error("Encryption failed:", error);
+		throw error;
+	}
 };
 
-	useEffect(() => {
-		const token = localStorage.getItem("zenith_token");
-		if (token) {
-			navigate("/portal", { replace: true });
+const handleSubmit = async (e) => {
+	e.preventDefault();
+	setLoading(true);
+
+	try {
+		const encryptedPassword = await encryptPassword(password);
+		const response = await axios.post(
+			"https://accessbulk.approot.ng/login.php",
+			{
+				email,
+				password: encryptedPassword,
+			}
+		);
+
+	
+		if (response.data.requires_otp === true) {
+		
+			if (!response.data.temp_token) {
+				toast.error("Authentication error. Please try again.");
+				console.error("Missing temp_token in response:", response.data);
+				return;
+			}
+
+			
+			sessionStorage.setItem(STORAGE_PREFIX + "temp_token", response.data.temp_token);
+			
+		
+			sessionStorage.setItem(STORAGE_PREFIX + "email", email);
+
+			// ✅ Success message and navigate to OTP page
+			toast.success(response.data.message || "OTP sent to your email");
+			navigate("/otp");
+
+		} 
+	
+		else if (response.data.status === true && response.data.token) {
+			toast.success("Login successful");
+			
+		
+			localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
+			
+		
+			if (response.data.user) {
+				localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
+			}
+			
+		
+			sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
+			sessionStorage.removeItem(STORAGE_PREFIX + "email");
+			
+			navigate("/portal");
+		} 
+	
+		else {
+			toast.error(response.data.message || "Invalid credentials.");
 		}
-			else {
+
+	} catch (error) {
+		console.error("Login error:", error);
+		
+	
+		if (error.response) {
+			// Server responded with error status
+			toast.error(error.response.data?.message || "Login failed. Please try again.");
+		} else if (error.request) {
+			// Request made but no response
+			toast.error("Cannot reach server. Please check your connection.");
+		} else {
+			// Encryption or other error
+			toast.error("An error occurred. Please try again.");
+		}
+	} finally {
+		setLoading(false);
+	}
+};
+
+useEffect(() => {
+	
+	const token = localStorage.getItem(STORAGE_PREFIX + "token");
+	
+	if (token) {
+	
+	}
+	
+	else {
 		sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
 		sessionStorage.removeItem(STORAGE_PREFIX + "email");
 	}
-	}, [navigate]);
+}, [navigate]);
 
 	return (
 		<div

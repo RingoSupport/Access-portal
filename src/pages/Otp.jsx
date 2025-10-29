@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 import { encryptData } from "../utils/crypto";
 import { AiFillBank } from "react-icons/ai";
 
-const STORAGE_PREFIX = "zenith_";
+const STORAGE_PREFIX = "access_";
 
 const GENERATE_TOKEN_URL = "https://bulkaccess.approot.ng/generatetoken.php";
 const OTP_VERIFY_URL = "https://accessbulk.approot.ng/otp.php";
@@ -59,7 +59,7 @@ const OtpPage = () => {
 	const [loading, setLoading] = useState(false);
 
 	const email = sessionStorage.getItem(STORAGE_PREFIX + "email");
-	const tempToken = sessionStorage.getItem("zenith_token");
+    const tempToken = sessionStorage.getItem(STORAGE_PREFIX + "temp_token");
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
