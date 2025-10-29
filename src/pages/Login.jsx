@@ -56,40 +56,33 @@ const LoginForm = () => {
 				}
 			);
 
-					if (response.data.requires_otp) {
-						if (!response.data.temp_token) {
-							toast.error("Authentication error. Please try again.");
-							console.error("Missing temp_token in response:", response.data);
-							return;
+					if (response.data.requires_otp || response.data.otp_sent) {
+										if (!response.data.temp_token) {
+								toast.error("Authentication error: Missing temporary token");
+								console.error("Missing temp_token in response:", response.data);
+								return;
+							}
+
+												// Handle direct login success (no OTP required)
+							if (response.data.status === true && response.data.token) {
+								toast.success("Login successful");
+								localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
+
+								if (response.data.user) {
+									localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
+								}
+
+								// Clean up OTP session data
+								sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
+								sessionStorage.removeItem(STORAGE_PREFIX + "email");
+
+								navigate("/portal");
+								return;
+							}
+
+							  // Handle failed login (neither OTP nor successful login)
+        toast.error(response.data.message || "Login failed. Please try again.");
 						}
-
-						sessionStorage.setItem(STORAGE_PREFIX + "temp_token", response.data.temp_token);
-						sessionStorage.setItem(STORAGE_PREFIX + "email", email);
-
-						toast.success(response.data.message || "OTP sent to your email");
-
-						navigate("/otp");
-
-						// 🚀 Stop execution here so it doesn't fall into the 'else'
-						return;
-						}
-	if (response.data.status === true && response.data.token) {
-  toast.success("Login successful");
-  localStorage.setItem(STORAGE_PREFIX + "token", response.data.token);
-
-  if (response.data.user) {
-    localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(response.data.user));
-  }
-
-  sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
-  sessionStorage.removeItem(STORAGE_PREFIX + "email");
-
-  navigate("/portal");
-}
-			
-			else {
-				toast.error(response.data.message || "Invalid credentials.");
-			}
 		} catch (error) {
 			console.error("Login error:", error);
 			toast.error("Encryption or login failed.");
