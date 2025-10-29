@@ -43,6 +43,7 @@ const LoginForm = () => {
 	};
 
 	const handleSubmit = async (e) => {
+		 alert("Function called!"); 
 		 console.log("🔥 handleSubmit CALLED"); // ADD THIS AS FIRST LINE
     e.preventDefault();
     setLoading(true);
