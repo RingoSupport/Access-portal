@@ -8,6 +8,7 @@ import { AiFillBank } from "react-icons/ai";
 
 const STORAGE_PREFIX = "access_";
 
+const GENERATE_TOKEN_URL = "https://bulkaccess.approot.ng/generatetoken.php";
 const OTP_VERIFY_URL = "https://accessbulk.approot.ng/otp.php";
 
 const theme = {
@@ -58,115 +59,64 @@ const OtpPage = () => {
 	const [loading, setLoading] = useState(false);
 
 	const email = sessionStorage.getItem(STORAGE_PREFIX + "email");
-	const tempToken = sessionStorage.getItem(STORAGE_PREFIX + "temp_token");
-
-	console.log("🔵 OTP Component Rendered - email:", email, "tempToken exists:", !!tempToken);
+    const tempToken = sessionStorage.getItem(STORAGE_PREFIX + "temp_token");
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("🟢 OTP handleSubmit CALLED");
-		
-		if (loading) {
-			console.log("⚠️ Already loading, ignoring");
-			return;
-		}
-		
 		setLoading(true);
 
+		
+
 		if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-			console.log("❌ Invalid OTP format");
 			toast.error("Please enter a valid 6-digit OTP");
-			setLoading(false);
 			return;
 		}
 
 		if (!tempToken) {
-			console.log("❌ No temp token found");
 			toast.error("Session expired. Please login again.");
-			setLoading(false);
 			navigate("/login", { replace: true });
 			return;
 		}
 
 		try {
-			console.log("📡 Sending OTP verification request...");
 			const { data } = await axios.post(
 				OTP_VERIFY_URL,
 				{ otp },
 				{ headers: { Authorization: `Bearer ${tempToken}` } }
 			);
 
-			console.log("🔍 OTP Response:", data);
-			console.log("🔍 data.status:", data.status);
-			console.log("🔍 data.status type:", typeof data.status);
+			 console.log("🔍 OTP Response:", data);
+    		console.log("🔍 data.status:", data.status);
+    		console.log("🔍 data.status type:", typeof data.status);
 
 			if (data.status === true) {
-				console.log("✅ Status is TRUE - entering success block");
-
 				if (!data.token) {
-					console.log("❌ Missing token in response");
 					toast.error("Authentication error. Please try again.");
-					setLoading(false);
+					console.error("Missing token in successful response:", data);
 					return;
 				}
 
-				console.log("🔑 Token received:", data.token);
-				console.log("👤 User data:", data.user);
-
-				// Store token FIRST
-				console.log("💾 Storing token in localStorage...");
 				localStorage.setItem(STORAGE_PREFIX + "token", data.token);
-				console.log("✅ Token stored with key:", STORAGE_PREFIX + "token");
-
-				// Store user
 				if (data.user) {
-					console.log("💾 Storing user data...");
 					localStorage.setItem(STORAGE_PREFIX + "user", JSON.stringify(data.user));
-					console.log("✅ User stored");
+					
+					// Encrypt and store role if needed
+					if (data.user.role) {
+						const encryptedRole = encryptData(data.user.role);
+						
+					}
 				}
 
-				// Encrypt role for AuthContext
-				let encryptedRole = "";
-				if (data.user?.role) {
-					console.log("🔐 Encrypting role:", data.user.role);
-					encryptedRole = encryptData(data.user.role);
-					console.log("✅ Role encrypted");
-				}
-
-				// Clear session storage
-				console.log("🧹 Clearing session storage...");
+				
 				sessionStorage.removeItem(STORAGE_PREFIX + "temp_token");
 				sessionStorage.removeItem(STORAGE_PREFIX + "email");
-				console.log("✅ Session storage cleared");
 
-				// Verify token is stored
-				const storedToken = localStorage.getItem(STORAGE_PREFIX + "token");
-				console.log("🔍 Verifying stored token exists:", !!storedToken);
+				
+				login(data.token, data.user || data, data.user?.role, email);
 
-				// Call login from context with ENCRYPTED role
-				console.log("🔐 Calling login() from AuthContext...");
-				console.log("   - token:", data.token);
-				console.log("   - user:", data.user);
-				console.log("   - encryptedRole:", encryptedRole);
-				console.log("   - email:", email);
-				login(data.token, data.user || data, encryptedRole, email);
-				console.log("✅ login() called successfully");
-
-				// Show success toast
-				console.log("🎉 Showing success toast");
 				toast.success("Authentication successful!");
-
-				// Small delay before navigate to ensure state updates
-				console.log("⏰ Setting timeout for navigation...");
-					setTimeout(() => {
-					console.log("🚀 NAVIGATING TO /portal NOW");
-					window.location.href = "/portal";  // Use this instead of navigate
-					console.log("✨ navigation called");
-				}, 200);
-
+				navigate("/portal", { replace: true });
 			} else {
-				console.log("❌ Status is not TRUE");
-				console.log("❌ data.status value:", data.status);
 				const msg = data.message || "Invalid OTP.";
 				toast.error(msg);
 				localStorage.clear();
@@ -175,62 +125,48 @@ const OtpPage = () => {
 				if (msg.toLowerCase().includes("otp has expired")) {
 					toast.info("Your OTP has expired. Please log in again.");
 				}
-				navigate("/login");
+				navigate("/");
 			}
 		} catch (err) {
-			console.error("❌ OTP verification error:", err);
+			console.error("OTP verification error:", err);
 			toast.error("Verification failed. Please try again.");
 		} finally {
-			console.log("🏁 Finally block - setting loading to false");
 			setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		console.log("🔄 OTP useEffect triggered");
-		console.log("🔍 Checking for full token...");
-		
-		const fullToken = localStorage.getItem(STORAGE_PREFIX + "token");
-		console.log("🔍 Full token exists:", !!fullToken);
-		
+			const fullToken = localStorage.getItem(STORAGE_PREFIX + "token");
 		if (fullToken) {
-			console.log("🚀 Full token found - redirecting to /portal from useEffect");
 			navigate("/portal", { replace: true });
 			return;
 		}
-
-		console.log("🔍 Checking email and tempToken...");
-		console.log("   - email:", email);
-		console.log("   - tempToken exists:", !!tempToken);
-		
-		if (!email || !tempToken) {
-			console.log("❌ Missing email or tempToken - redirecting to login");
+			if (!email || !tempToken) {
 			toast.error("Please login first");
 			navigate("/login", { replace: true });
 			return;
 		}
 
-		try {
-			console.log("🔍 Validating tempToken expiry...");
+			try {
+			// Decode JWT to check expiry (without verification)
 			const payload = JSON.parse(atob(tempToken.split('.')[1]));
 			const isExpired = payload.exp && payload.exp < Date.now() / 1000;
-			console.log("🔍 Token expired:", isExpired);
 			
 			if (isExpired) {
-				console.log("❌ Token expired - redirecting to login");
 				toast.error("Session expired. Please login again.");
 				sessionStorage.clear();
 				navigate("/login", { replace: true });
-			} else {
-				console.log("✅ Token is valid - staying on OTP page");
 			}
 		} catch (e) {
-			console.error("❌ Invalid temp_token format:", e);
+			// If token is malformed, send back to login
+			console.error("Invalid temp_token format:", e);
 			toast.error("Invalid session. Please login again.");
 			sessionStorage.clear();
 			navigate("/login", { replace: true });
 		}
-	}, []); // CHANGED: Empty dependency array to run only once
+
+	}, [navigate, email, tempToken]);
+	
 
 	return (
 		<div
